@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyLoop – student revision workspace</title>
+<style>
+:root{--bg:#f1eefb;--ink:#241b3a;--mute:#6b6285;--card:#fff;--line:#dcd5f0;--mint:#14b891;--tang:#ff7a45;--vio:#6a4ce0;--red:#e0405a;--soft:#ece8fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;transition:background .2s,color .2s}
+body.dark{--bg:#171326;--ink:#f3efff;--mute:#b7accf;--card:#241d36;--line:#403654;--soft:#342a4a}
+/* Student-selected colour palettes. The dark-mode variants keep every palette readable. */
+body[data-palette="lavender"]{--bg:#f1eefb;--ink:#241b3a;--mute:#6b6285;--card:#fff;--line:#dcd5f0;--vio:#6a4ce0;--soft:#ece8fb}
+body.dark[data-palette="lavender"]{--bg:#171326;--ink:#f3efff;--mute:#b7accf;--card:#241d36;--line:#403654;--vio:#a995ff;--soft:#342a4a}
+body[data-palette="ocean"]{--bg:#edf5fc;--ink:#17324d;--mute:#58718a;--card:#fff;--line:#d2e2f1;--vio:#2878bd;--soft:#dfedfa}
+body.dark[data-palette="ocean"]{--bg:#101e2b;--ink:#eaf4ff;--mute:#a9c0d5;--card:#1b3042;--line:#34516a;--vio:#70b9f2;--soft:#263f55}
+body[data-palette="mint"]{--bg:#edf8f1;--ink:#1c3c2b;--mute:#5d7c69;--card:#fff;--line:#d1e9d9;--vio:#27875a;--soft:#ddf1e4}
+body.dark[data-palette="mint"]{--bg:#12251b;--ink:#eafff0;--mute:#a8c9b2;--card:#1d3527;--line:#365642;--vio:#70d49a;--soft:#294735}
+body[data-palette="peach"]{--bg:#fff3eb;--ink:#4a2b1d;--mute:#8a6654;--card:#fff;--line:#f0d9ca;--vio:#c66b36;--soft:#fbe5d7}
+body.dark[data-palette="peach"]{--bg:#2b1b15;--ink:#fff0e7;--mute:#d2ad99;--card:#3b271f;--line:#614334;--vio:#ffad7d;--soft:#503528}
+body[data-palette="rose"]{--bg:#fff0f4;--ink:#482333;--mute:#896273;--card:#fff;--line:#f0d5df;--vio:#c04f7c;--soft:#f9e0e9}
+body.dark[data-palette="rose"]{--bg:#291722;--ink:#ffedf4;--mute:#d3aabd;--card:#3a2230;--line:#60384c;--vio:#f28ab2;--soft:#4d2b3d}
+.palette-select{width:auto;min-width:145px;max-width:180px}
+hr{border-color:var(--line)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.memory-card .answer-panel{margin:10px 0;padding:10px;border-radius:9px;background:var(--soft);white-space:pre-wrap}
+.memory-card .memory-actions{margin-top:10px}
+#backupStatus{min-height:1em}
+@media(max-width:560px){header .tools{width:100%}header .tools button{flex:1}form{grid-template-columns:1fr!important}form>*:nth-child(2){grid-column:auto!important}}
+.wrap{max-width:1050px;margin:auto;padding:28px 18px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font:800 clamp(34px,7vw,54px)/1 Georgia,serif;margin:0;letter-spacing:-1px}
+.sub{color:var(--mute);margin:10px 0 22px;max-width:70ch}
+h2{font:700 21px Georgia,serif;margin:28px 0 10px}
+h3{font-size:16px;margin:0 0 8px}
+.card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--line);min-width:0}
+form{display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr auto;gap:8px;align-items:end}
+label{font-size:12px;color:var(--mute);display:block;margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+textarea{min-height:100px;resize:vertical}
+:focus-visible{outline:3px solid var(--vio);outline-offset:1px}
+button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:9px;padding:9px 14px;background:var(--vio);color:#fff}
+button.secondary{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+button.sm{padding:5px 10px;font-size:13px;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+button:hover{filter:brightness(1.05)}
+.top{display:grid;grid-template-columns:230px 1fr;gap:16px}
+.score{text-align:center;display:flex;flex-direction:column;justify-content:center}
+.score .n{font:800 56px/1 Georgia,serif}
+.plan{display:flex;flex-direction:column;gap:10px}
+.task{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
+.task .min{font:800 22px Georgia,serif;min-width:58px;color:var(--vio)}
+.task .info{flex:1;min-width:150px}
+.task small{color:var(--mute);display:block}
+.row{display:grid;grid-template-columns:1.3fr 2fr auto;gap:12px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line);border-radius:8px}
+.row:hover,.row.sel{background:var(--soft)}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.meta{font-size:12px;color:var(--mute)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tools input{width:85px}
+.pill{font-size:12px;padding:2px 9px;border-radius:99px;background:var(--soft);display:inline-block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{font:800 30px Georgia,serif;color:var(--vio)}
+.notice{padding:10px 12px;border-radius:10px;background:var(--soft);margin:8px 0}
+.alert{border-left:4px solid var(--tang)}
+.good{color:var(--mint)} .warn{color:var(--tang)}
+svg{width:100%;height:auto;display:block}
+details{margin-top:28px;font-size:13px;color:var(--mute)}
+.log{font:12px ui-monospace,monospace;border-bottom:1px dashed var(--line);padding:3px 0}
+.timer{font:800 48px Georgia,serif;text-align:center;margin:10px 0}
+.note-item{border-bottom:1px solid var(--line);padding:10px 0}
+.note-item p{margin:5px 0;white-space:pre-wrap}
+.badge{font-size:12px;border-radius:20px;padding:4px 9px;background:var(--soft);display:inline-block;margin:3px}
+.memory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.memory-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)}.priority{font-weight:700;color:var(--vio)}
+
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:end}
+.grade-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.grade-stat{background:var(--soft);border-radius:12px;padding:12px}
+.grade-entry{display:grid;grid-template-columns:1.3fr 1fr .7fr .7fr .7fr auto;gap:8px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.grade-entry small{display:block;color:var(--mute)}
+@media(max-width:760px){.profile-grid,.grade-summary{grid-template-columns:1fr 1fr}.grade-entry{grid-template-columns:1fr 1fr}.grade-entry>*:last-child{justify-self:start}}
+
+@media(max-width:760px){form{grid-template-columns:1fr 1fr}form>*:nth-child(2){grid-column:1/-1}.top,.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}.wrap{padding-top:20px}}
+
+/* StudyLoop 9-page workspace redesign */
+.wrap{max-width:1440px;padding:0;min-height:100vh}
+#appShell{display:grid;grid-template-columns:252px minmax(0,1fr);gap:0;min-height:100vh}
+.study-sidebar{position:sticky;top:0;height:100vh;align-self:start;background:var(--card);border-right:1px solid var(--line);padding:26px 16px;display:flex;flex-direction:column;gap:22px;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;padding:0 10px}
+.brand-mark{width:38px;height:38px;border-radius:12px;background:var(--soft);display:grid;place-items:center;font-size:20px}
+.brand-name{font:800 23px Georgia,serif;letter-spacing:-.5px}
+.brand-tag{font-size:11px;color:var(--mute)}
+.side-label{font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--mute);padding:0 12px}
+.side-nav{display:flex;flex-direction:column;gap:5px}
+.side-nav button{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:11px 12px;border-radius:11px;background:transparent;color:var(--mute);font-size:14px;font-weight:650}
+.side-nav button:hover{background:var(--soft);filter:none}
+.side-nav button.active{background:var(--soft);color:var(--vio)}
+.side-nav .nav-icon{width:22px;text-align:center;font-size:17px}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--line);padding:16px 10px 0;color:var(--mute);font-size:12px}
+.app-main{min-width:0;padding:30px clamp(18px,3vw,46px) 60px;max-width:1250px;width:100%;margin:0 auto}
+.page-view{display:none;animation:pageIn .18s ease}
+.page-view.active{display:block}
+@keyframes pageIn{from{opacity:.65;transform:translateY(4px)}to{opacity:1;transform:none}}
+.app-main header{margin-bottom:8px}
+.app-main h1{font-size:clamp(32px,4vw,46px)}
+.page-heading{margin:0 0 6px!important;font:800 27px Georgia,serif!important;letter-spacing:-.5px}
+.page-description{margin:0 0 22px;color:var(--mute);font-size:14px}
+.page-view>h2:first-child{margin-top:8px}
+@media(max-width:850px){
+ #appShell{grid-template-columns:1fr}
+ .study-sidebar{position:sticky;top:0;height:auto;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);gap:8px}
+ .brand{padding:0 5px}.brand-mark{width:32px;height:32px}
+ .side-label,.sidebar-bottom{display:none}
+ .side-nav{flex-direction:row;overflow-x:auto;padding-bottom:2px;gap:4px}
+ .side-nav button{width:auto;white-space:nowrap;padding:9px 11px;font-size:12px}
+ .side-nav .nav-icon{width:auto}
+ .app-main{padding:22px 16px 48px}
+}
+@media(max-width:480px){.side-nav button{gap:6px;padding:8px 9px}.side-nav .nav-icon{font-size:15px}}
+
+
+#appShell[hidden],#authScreen[hidden]{display:none!important}
+.auth-screen{min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg)}
+.auth-card{width:min(100%,480px);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 18px 55px #241b3a12}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.auth-brand .brand-mark{width:48px;height:48px}
+.auth-tabs{display:flex;gap:8px;margin:18px 0}
+.auth-tabs button{flex:1}
+.auth-tabs button.active{background:var(--vio);color:#fff}
+.auth-form{display:grid;grid-template-columns:1fr;gap:12px}
+.auth-form label{font-size:13px}
+.auth-form input{margin-top:4px}
+.auth-message{padding:11px 13px;border-radius:10px;background:var(--soft);font-size:13px;margin:12px 0;white-space:pre-wrap}
+.auth-message.error{border-left:4px solid var(--red)}
+.auth-small{font-size:12px;color:var(--mute)}
+.auth-form button{width:100%}
+#accountBadge{font-size:12px;color:var(--mute);padding:6px 9px;border-radius:9px;background:var(--soft)}
+@media(max-width:560px){.auth-card{padding:20px}.auth-screen{padding:14px}}
+
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen">
+  <section class="auth-card" aria-labelledby="authTitle">
+    <div class="auth-brand">
+      <div class="brand-mark">📚</div>
+      <div><div class="brand-name">StudyLoop</div><div class="brand-tag">Your personal learning space</div></div>
+    </div>
+    <h1 id="authTitle" style="font-size:32px;margin:0">Welcome to StudyLoop</h1>
+    <p class="meta">Sign in to your own student workspace, or create a new demo account.</p>
+    <div class="notice">
+      <b>College project demo mode</b>
+      <div class="meta">No email verification is sent. You can use any email-shaped address, including a made-up one, and create a password for this browser.</div>
+    </div>
+    <div class="auth-tabs" role="tablist" aria-label="Account access">
+      <button id="loginTab" class="active" type="button" role="tab" aria-selected="true">Log in</button>
+      <button id="signupTab" class="secondary" type="button" role="tab" aria-selected="false">Create account</button>
+    </div>
+    <form id="demoLoginForm" class="auth-form">
+      <div><label for="demoLoginEmail">Email address</label><input id="demoLoginEmail" type="email" autocomplete="username" placeholder="student1@studyloop.demo" required></div>
+      <div><label for="demoLoginPassword">Password</label><input id="demoLoginPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Your password" required></div>
+      <button type="submit">Log in to StudyLoop</button>
+    </form>
+    <form id="demoSignupForm" class="auth-form" hidden>
+      <div><label for="demoSignupName">Student name</label><input id="demoSignupName" autocomplete="name" maxlength="70" placeholder="Enter your name" required></div>
+      <div><label for="demoSignupEmail">Email address</label><input id="demoSignupEmail" type="email" autocomplete="username" placeholder="student1@studyloop.demo" required></div>
+      <div><label for="demoSignupPassword">Create password</label><input id="demoSignupPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required></div>
+      <div><label for="demoSignupConfirm">Confirm password</label><input id="demoSignupConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="Enter it again" required></div>
+      <button type="submit">Create my account</button>
+    </form>
+    <div id="demoAuthMessage" class="auth-message" role="status" aria-live="polite">Each account has its own profile, subjects, marks, notes and progress on this browser.</div>
+    <p class="auth-small">Demo limitation: accounts and study data are saved only in this browser. This is for a college demonstration, not secure multi-device authentication.</p>
+  </section>
+</div>
+
+<div class="wrap">
+<div id="appShell" hidden>
+<aside class="study-sidebar" aria-label="Main navigation">
+  <div class="brand"><div class="brand-mark">📚</div><div><div class="brand-name">StudyLoop</div><div class="brand-tag">Your learning space</div></div></div>
+  <div class="side-label">WORKSPACE</div>
+  <nav class="side-nav" id="sideNav">
+    <button class="active" data-page="dashboard"><span class="nav-icon">⌂</span>Dashboard</button>
+    <button data-page="profile"><span class="nav-icon">♙</span>My Profile</button>
+    <button data-page="academics"><span class="nav-icon">▤</span>Academics</button>
+    <button data-page="planner"><span class="nav-icon">◷</span>Study Planner</button>
+    <button data-page="memory"><span class="nav-icon">✧</span>Memory Zone</button>
+    <button data-page="exams"><span class="nav-icon">⚑</span>Exam Preparation</button>
+    <button data-page="progress"><span class="nav-icon">↗</span>My Progress</button>
+    <button data-page="notes"><span class="nav-icon">▧</span>My Notes</button>
+    <button data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+  </nav>
+  <div class="sidebar-bottom">Small steps. Strong memory. Better results.</div>
+</aside>
+<main class="app-main">
+<div id="startupError" class="notice alert" role="alert" hidden></div>
+<header><h1>StudyLoop</h1><div class="tools"><span id="accountBadge"></span><button class="secondary" id="demoLogoutBtn" type="button">Log out</button><button class="secondary" id="demoDataBtn" type="button">✨ Load demo workspace</button><button class="secondary" id="themeBtn" type="button">🌙 Dark mode</button><button class="secondary" id="clearDataBtn" type="button">Clear my study data</button></div></header>
+
+<p class="sub">Study smarter, not just longer. Organise topics, practise active recall, and build a revision plan around your exam dates.</p>
+
+<h2>Student profile</h2>
+<div class="card">
+  <form id="profileForm" class="profile-grid">
+    <div><label for="studentName">Your name</label><input id="studentName" placeholder="Enter your name" required></div>
+    <div><label for="studentLevel">I am studying</label><select id="studentLevel"><option value="class11">Class 11</option><option value="class12">Class 12</option><option value="undergraduate">Undergraduate</option></select></div>
+    <div><label for="institution">School / College</label><input id="institution" placeholder="School or college name"></div>
+    <div><label for="boardUniversity">Board / University</label><input id="boardUniversity" placeholder="e.g. CBSE / University name"></div>
+    <div><label for="academicYear">Academic year / semester</label><input id="academicYear" placeholder="e.g. 2026–27 / Semester 3"></div>
+    <button type="submit">Save profile</button>
+  </form>
+  <div class="meta" id="profileStatus" role="status" style="margin-top:8px">Set up your profile to personalise StudyLoop.</div>
+</div>
+
+<h2>Grades & academic performance</h2>
+<div class="card">
+  <p class="meta">Record test, internal, board or semester marks. StudyLoop calculates the percentage and an indicative grade. Undergraduate students can also record SGPA / CGPA.</p>
+  <form id="gradeForm" class="profile-grid">
+    <div><label for="gradeSubject">Subject</label><input id="gradeSubject" placeholder="e.g. Mathematics" required></div>
+    <div><label for="assessmentName">Exam / assessment</label><input id="assessmentName" placeholder="e.g. Unit test / Mid-sem" required></div>
+    <div><label for="marksObtained">Marks obtained</label><input id="marksObtained" type="number" min="0" step="any" placeholder="e.g. 82" required></div>
+    <div><label for="marksMaximum">Maximum marks</label><input id="marksMaximum" type="number" min="1" step="any" value="100" required></div>
+    <div><label for="gradeGpa">Optional SGPA / CGPA (UG)</label><input id="gradeGpa" type="number" min="0" max="10" step="0.01" placeholder="e.g. 8.4"></div>
+    <button type="submit">Add result</button>
+  </form>
+  <div class="tools" style="margin-top:12px"><label for="targetPercent" style="margin:0">My target percentage</label><input id="targetPercent" type="number" min="1" max="100" value="85"><span class="meta">Used to compare your recorded results with your goal.</span></div>
+  <div id="gradeSummary" class="grade-summary"></div>
+  <div id="gradeEntries"></div>
+  <div class="meta" id="gradeHint" style="margin-top:8px">Grades are indicative percentage bands; your school, board or university's official grading rules may differ.</div>
+</div>
+
+
+<h2>Personalize your colours</h2>
+<div class="card">
+  <div class="tools">
+    <label for="paletteSelect" style="margin:0">Choose your colour theme</label>
+    <select id="paletteSelect" class="palette-select" aria-label="Choose your colour theme">
+      <option value="lavender">💜 Lavender</option>
+      <option value="ocean">💙 Ocean blue</option>
+      <option value="mint">💚 Mint</option>
+      <option value="peach">🧡 Peach</option>
+      <option value="rose">🩷 Rose</option>
+    </select>
+    <span class="meta" id="paletteHint">Your choice is saved in this browser.</span>
+  </div>
+  <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+  <h3>Data backup</h3>
+  <p class="meta">Export a copy of your StudyLoop data or import a backup file on this device.</p>
+  <div class="tools"><button class="secondary" id="exportDataBtn" type="button">Export backup</button><button class="secondary" id="importDataBtn" type="button">Import backup</button><input id="importDataFile" type="file" accept="application/json,.json" hidden><span id="backupStatus" class="meta" role="status"></span></div>
+</div>
+
+<h2>Add a topic</h2>
+<div class="card">
+<form id="topicForm">
+<div><label for="subject">Subject</label><input id="subject" placeholder="Maths" required></div>
+<div><label for="topic">Topic</label><input id="topic" placeholder="Laplace transforms" required></div>
+<div><label for="exam">Exam date</label><input id="exam" type="date" required></div>
+<div><label for="confidence">Confidence now</label><select id="confidence"><option value="1">1 – lost</option><option value="2">2 – shaky</option><option value="3" selected>3 – okay</option><option value="4">4 – good</option><option value="5">5 – solid</option></select></div><div><label for="importance">Exam importance</label><select id="importance"><option value="1">Low</option><option value="2" selected>Medium</option><option value="3">High</option></select></div>
+<button>Add topic</button>
+</form><div id="error" class="meta" role="status"></div>
+</div>
+
+<h2>Today</h2>
+<div class="top">
+<div class="card score"><div class="n" id="readiness">–</div><div>estimated exam-day retention</div><div class="meta">A planning estimate based on your revision history — not a guaranteed score.</div></div>
+<div class="card">
+<div class="tools"><label for="budget" style="margin:0">Study time today (min)</label><input id="budget" type="number" min="15" step="15" value="90"><button class="sm" id="fastForward" type="button">Fast-forward 1 day</button><span class="pill" id="clock">today</span></div>
+<div id="plan" class="plan" style="margin-top:12px"></div>
+</div></div>
+
+<h2>Exam countdown</h2><div class="card"><div id="countdowns" class="grid3"></div></div>
+
+<h2>Smart revision notifications</h2><div class="card"><div id="notifications"></div></div>
+
+<h2>Memory map</h2><div class="card"><div id="memoryMap"></div><div id="curve" style="margin-top:14px"></div></div>
+
+<h2>Study streak & rewards</h2><div class="grid2">
+<div class="card"><div class="meta">Current study streak</div><div class="stat" id="streak">0 days 🔥</div><div class="meta" id="streakHint">Complete a study session to start your streak.</div></div>
+<div class="card"><h3>Your badges</h3><div id="badges"></div></div>
+</div>
+
+<h2>Pomodoro focus timer</h2><div class="card">
+<div class="tools"><label for="focusLength">Focus minutes</label><input id="focusLength" type="number" min="1" max="90" value="25"><label for="breakLength">Break minutes</label><input id="breakLength" type="number" min="1" max="30" value="5"></div>
+<div class="timer" id="timer">25:00</div><div class="tools" style="justify-content:center"><button id="timerStart" type="button">Start</button><button class="secondary" id="timerPause" type="button">Pause</button><button class="secondary" id="timerReset" type="button">Reset</button></div>
+<p class="meta" id="timerStatus" style="text-align:center">Focus session</p>
+</div>
+
+<h2>Weekly performance</h2><div class="card"><div class="grid3"><div><div class="meta">Focus minutes this week</div><div class="stat" id="weekMinutes">0</div></div><div><div class="meta">Completed focus sessions</div><div class="stat" id="weekSessions">0</div></div><div><div class="meta">Topics in StudyLoop</div><div class="stat" id="topicCount">0</div></div></div><div id="weeklyChart" style="margin-top:16px"></div></div>
+
+<h2>Memory Intelligence Engine</h2>
+<div class="card">
+  <p class="meta">Check what you really remember. Enter a short question and its correct answer for a topic, then test yourself without looking.</p>
+  <div class="grid2">
+    <div><label for="memoryTopic">Topic</label><select id="memoryTopic"></select></div>
+    <div><label for="memoryQuestion">Your recall question</label><input id="memoryQuestion" placeholder="Example: What is a primary key?"></div>
+  </div>
+  <label for="memoryAnswer" style="margin-top:10px">Correct answer / key points</label><textarea id="memoryAnswer" placeholder="Write the answer you expect to recall..."></textarea>
+  <button id="saveMemoryPrompt" type="button">Save recall question</button>
+  <div id="memoryPrompts" style="margin-top:14px"></div>
+  <div id="memoryInsights" class="notice" style="margin-top:14px"></div>
+</div>
+
+<h2>Exam Rescue Mode</h2>
+<div class="card">
+  <p class="meta">Choose how much time you have today. StudyLoop prioritises weak, important topics with nearby exams.</p>
+  <div class="tools"><label for="rescueBudget">Available time (minutes)</label><input id="rescueBudget" type="number" min="15" step="15" value="120"><button id="buildRescue" type="button">Build my rescue plan</button></div>
+  <div id="rescuePlan" style="margin-top:12px"></div>
+</div>
+
+<h2>Personal notes</h2><div class="card">
+<div class="grid2"><div><label for="noteTopic">Topic</label><select id="noteTopic"></select></div><div><label for="noteTitle">Note title</label><input id="noteTitle" placeholder="Important formula"></div></div>
+<label for="noteBody" style="margin-top:10px">Your notes</label><textarea id="noteBody" placeholder="Write a short explanation, formula, or reminder..."></textarea>
+<button id="saveNote" type="button">Save note</button><div id="notesList" style="margin-top:12px"></div>
+</div>
+
+<details><summary>Behind the scenes: activity log</summary><div id="log"></div></details>
+</main>
+</div>
+</div>
+<script>
+
+const $=s=>document.querySelector(s);
+const DAY=864e5,TARGET=.7; let KEY="studyloop.demo.guest";
+const fresh={topics:[],skip:0,theme:"light",palette:"lavender",notes:[],studyDates:[],sessions:[],memoryPrompts:[],memoryResults:[],mistakes:[],profile:{name:"",level:"class11",institution:"",boardUniversity:"",academicYear:""},grades:[],targetPercent:85};
+let db;
+try{db={...fresh,...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch(e){db={...fresh}}
+// Recover safely if an older or incomplete browser save is present.
+for(const key of ["topics","notes","studyDates","sessions","memoryPrompts","memoryResults","mistakes","grades"]){if(!Array.isArray(db[key]))db[key]=[];}
+if(!Number.isFinite(+db.skip))db.skip=0;
+if(!db.profile||typeof db.profile!=="object")db.profile={name:"",level:"class11",institution:"",boardUniversity:"",academicYear:""};
+if(!Number.isFinite(+db.targetPercent))db.targetPercent=85;
+if(db.theme!=="dark")db.theme="light";
+const PALETTES=["lavender","ocean","mint","peach","rose"];
+if(!PALETTES.includes(db.palette))db.palette="lavender";
+// Repair topic fields from older saves before using them in calculations.
+db.topics=db.topics.filter(t=>t&&typeof t==="object").map(t=>({...t,S:Number.isFinite(Number(t.S))&&Number(t.S)>0?Number(t.S):2.5,last:Number.isFinite(Number(t.last))?Number(t.last):Date.now(),importance:Math.max(1,Math.min(3,Number(t.importance)||2)),quizCount:Math.max(0,Number(t.quizCount)||0),quizAverage:Number.isFinite(Number(t.quizAverage))?Number(t.quizAverage):0}));
+const revealedPrompts=new Set();
+const applyPalette=()=>{document.body.dataset.palette=db.palette;const picker=$("#paletteSelect");if(picker)picker.value=db.palette;};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(db));return true}catch(e){console.warn("Could not save StudyLoop data",e);return false}};
+function loadDemoWorkspace(){
+ if((db.topics.length||db.notes.length||db.grades.length||db.memoryPrompts.length)&&!confirm("Load the demo workspace? This replaces the current StudyLoop data in this browser. Export a backup first if you want to keep it."))return;
+ const base=clock(),dayOffset=n=>dateKey(new Date(base+n*DAY));
+ const ids=[Date.now()+11,Date.now()+22,Date.now()+33,Date.now()+44];
+ db={...fresh,theme:db.theme,palette:db.palette,skip:0,profile:{name:"Demo Student",level:"undergraduate",institution:"StudyLoop Demo College",boardUniversity:"University",academicYear:"Semester 3"},targetPercent:85,
+ topics:[
+  {id:ids[0],subject:"Data Structures",topic:"Merge Sort",exam:dayOffset(3),S:1.7,last:base-2*DAY,confidence:40,importance:3,quizAverage:40,quizCount:2},
+  {id:ids[1],subject:"Database Systems",topic:"SQL Joins",exam:dayOffset(6),S:3.2,last:base-1*DAY,confidence:60,importance:3,quizAverage:75,quizCount:2},
+  {id:ids[2],subject:"Discrete Mathematics",topic:"Groups and Rings",exam:dayOffset(9),S:2.2,last:base-3*DAY,confidence:40,importance:2,quizAverage:50,quizCount:1},
+  {id:ids[3],subject:"Web Development",topic:"CSS Box Model",exam:dayOffset(12),S:4,last:base-.5*DAY,confidence:80,importance:1,quizAverage:90,quizCount:1}],
+ memoryPrompts:[{id:ids[0]+100,topicId:ids[0],question:"What are the main steps in Merge Sort?",answer:"Divide the array into smaller halves, recursively sort each half, then merge the sorted halves."},{id:ids[1]+100,topicId:ids[1],question:"What does an INNER JOIN return?",answer:"Only rows with matching values in both joined tables."},{id:ids[2]+100,topicId:ids[2],question:"What is the identity element in a group?",answer:"An element e such that a·e = e·a = a for every element a in the group."}],
+ memoryResults:[{id:ids[0]+200,promptId:ids[0]+100,score:50,date:dayOffset(-1)},{id:ids[0]+201,promptId:ids[0]+100,score:30,date:dayOffset(-2)},{id:ids[1]+200,promptId:ids[1]+100,score:100,date:dayOffset(-1)}],
+ notes:[{id:ids[0]+300,topicId:ids[0],title:"Merge Sort reminder",body:"Time complexity: O(n log n) in best, average and worst cases. It uses divide and conquer."}],
+ grades:[{id:ids[0]+400,subject:"Data Structures",assessment:"Internal Test 1",obtained:38,maximum:50,gpa:""},{id:ids[1]+400,subject:"Database Systems",assessment:"Quiz",obtained:42,maximum:50,gpa:""}],
+ studyDates:[-6,-5,-3,-2,-1,0].map(dayOffset),sessions:[{date:dayOffset(-6),minutes:25},{date:dayOffset(-5),minutes:40},{date:dayOffset(-3),minutes:25},{date:dayOffset(-2),minutes:50},{date:dayOffset(-1),minutes:25},{date:dayOffset(0),minutes:25}],mistakes:[]};
+ revealedPrompts.clear();selectedId=ids[0];save();renderProfile();renderGrades();render();renderMemoryEngine();buildRescuePlan();log("Loaded the presentation demo workspace");
+}
+function exportBackup(){
+ const payload={app:"StudyLoop",version:1,exportedAt:new Date().toISOString(),data:db};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob);
+ const a=document.createElement("a");a.href=url;a.download="studyloop-backup-"+todayKey()+".json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+ $("#backupStatus").textContent="Backup exported.";
+}
+function importBackup(file){
+ if(!file)return;const reader=new FileReader();
+ reader.onload=()=>{try{const parsed=JSON.parse(String(reader.result||"")),incoming=parsed.data||parsed;
+  const arrays=["topics","notes","studyDates","sessions","memoryPrompts","memoryResults","mistakes","grades"];
+  if(!incoming||typeof incoming!=="object"||!arrays.every(k=>Array.isArray(incoming[k])))throw new Error("This file is not a valid StudyLoop backup.");
+  if(!confirm("Import this backup and replace the current StudyLoop data?"))return;
+  db={...fresh,...incoming};for(const key of arrays)if(!Array.isArray(db[key]))db[key]=[];
+  if(!db.profile||typeof db.profile!=="object")db.profile={...fresh.profile};
+  db.skip=Number.isFinite(Number(db.skip))?Number(db.skip):0;db.theme=db.theme==="dark"?"dark":"light";db.palette=PALETTES.includes(db.palette)?db.palette:"lavender";
+  db.topics=db.topics.filter(t=>t&&typeof t==="object").map(t=>({...t,S:Number(t.S)>0?Number(t.S):2.5,last:Number.isFinite(Number(t.last))?Number(t.last):Date.now()}));
+  revealedPrompts.clear();selectedId=null;document.body.classList.toggle("dark",db.theme==="dark");$("#themeBtn").textContent=db.theme==="dark"?"☀️ Light mode":"🌙 Dark mode";applyPalette();save();renderProfile();renderGrades();render();renderMemoryEngine();buildRescuePlan();$("#backupStatus").textContent="Backup imported successfully.";log("Imported a StudyLoop backup");
+ }catch(err){$("#backupStatus").textContent=err.message||"Could not import this file.";}};
+ reader.onerror=()=>{$("#backupStatus").textContent="Could not read this file."};reader.readAsText(file);
+}
+$("#demoDataBtn").addEventListener("click",loadDemoWorkspace);
+$("#exportDataBtn").addEventListener("click",exportBackup);
+$("#importDataBtn").addEventListener("click",()=>$("#importDataFile").click());
+$("#importDataFile").addEventListener("change",e=>{importBackup(e.target.files[0]);e.target.value=""});
+$("#clearDataBtn").addEventListener("click",()=>{
+  if(!confirm("Clear all StudyLoop topics, notes, recall questions and study history saved in this browser? This cannot be undone."))return;
+  db={...fresh};revealedPrompts.clear();document.body.classList.toggle("dark",false);$("#themeBtn").textContent="🌙 Dark mode";applyPalette();selectedId=null;save();renderProfile();renderGrades();render();renderMemoryEngine();buildRescuePlan();
+});
+const clock=()=>Date.now()+db.skip*DAY;
+const dateKey=date=>{const d=new Date(date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+const todayKey=()=>dateKey(new Date(clock()));
+const logs=[];
+const retention=(d,S)=>Math.exp(-Math.max(0,d)/Math.max(.25,Number(S)||2.5));
+function analyze(t,now){
+ const last=Number.isFinite(Number(t.last))?Number(t.last):now;
+ const examDate=new Date((t.exam||todayKey())+"T09:00:00");
+ const examEnd=new Date((t.exam||todayKey())+"T23:59:59");
+ const dNow=Math.max(0,(now-last)/DAY),dExam=Math.max(0,(examDate-now)/DAY);
+ const R=retention(dNow,t.S),Rexam=retention(dNow+dExam,t.S);
+ const dueIn=-Math.max(.25,Number(t.S)||2.5)*Math.log(TARGET)-dNow;
+ const score=(1-R)*(1+10/(dExam+1));
+ return {R,Rexam,dNow,dExam,dueIn,score,over:Number.isNaN(examEnd.getTime())||now>examEnd.getTime()};
+}
+function allocateMinutes(items,budget,weightOf){
+ if(!items.length)return [];
+ const units=Math.max(1,Math.floor(Math.max(5,Number(budget)||15)/5));
+ const chosen=items.slice(0,Math.min(items.length,units));
+ const remaining=units-chosen.length;
+ const weights=chosen.map(x=>Math.max(.001,Number(weightOf(x))||0));
+ const weightTotal=weights.reduce((a,b)=>a+b,0)||1;
+ const exact=weights.map(w=>remaining*w/weightTotal);
+ const whole=exact.map(Math.floor);
+ let left=remaining-whole.reduce((a,b)=>a+b,0);
+ const order=exact.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f);
+ for(let i=0;i<left;i++)whole[order[i%order.length].i]++;
+ return chosen.map((item,i)=>({...item,min:(1+whole[i])*5}));
+}
+function makePlan(list,now,budget){
+ const candidates=list.map(t=>({t,A:analyze(t,now)})).filter(x=>!x.A.over&&x.A.R<.95).sort((a,b)=>b.A.score-a.A.score).slice(0,5);
+ return allocateMinutes(candidates,budget,x=>x.A.score);
+}
+function log(msg){logs.unshift(`${new Date().toLocaleTimeString()} – ${msg}`);$("#log").innerHTML=logs.slice(0,15).map(x=>`<div class="log">${escapeHTML(x)}</div>`).join("")}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function renderProfile(){
+ const p=db.profile||{};
+ $("#studentName").value=p.name||"";
+ $("#studentLevel").value=p.level||"class11";
+ $("#institution").value=p.institution||"";
+ $("#boardUniversity").value=p.boardUniversity||"";
+ $("#academicYear").value=p.academicYear||"";
+ const levels={class11:"Class 11",class12:"Class 12",undergraduate:"Undergraduate"};
+ $("#profileStatus").textContent=p.name
+  ? `Welcome, ${p.name}! ${levels[p.level]||"Student"} profile saved.`
+  : "Set up your profile to personalise StudyLoop.";
+}
+function gradeLabel(percent){
+ if(percent>=90)return "A+";
+ if(percent>=80)return "A";
+ if(percent>=70)return "B";
+ if(percent>=60)return "C";
+ if(percent>=50)return "D";
+ if(percent>=40)return "E";
+ return "Needs improvement";
+}
+function renderGrades(){
+ const grades=Array.isArray(db.grades)?db.grades:[];
+ const total=grades.reduce((s,g)=>s+Number(g.obtained||0),0);
+ const maximum=grades.reduce((s,g)=>s+Number(g.maximum||0),0);
+ const average=maximum>0?(total/maximum)*100:0;
+ const target=Math.max(1,Math.min(100,Number(db.targetPercent)||85));
+ $("#targetPercent").value=target;
+ $("#gradeSummary").innerHTML=`
+  <div class="notice"><b>Recorded overall percentage</b><div class="stat">${maximum?average.toFixed(1)+"%":"—"}</div></div>
+  <div class="notice"><b>Your target</b><div class="stat">${target}%</div></div>
+  <div class="notice"><b>Progress</b><div>${maximum?(average>=target?"Target reached 🎉":`${Math.max(0,target-average).toFixed(1)} percentage points to your target`):"Add results to track progress."}</div></div>`;
+ $("#gradeEntries").innerHTML=grades.length?grades.slice().reverse().map(g=>{
+  const pct=Number(g.maximum)>0?(Number(g.obtained)/Number(g.maximum))*100:0;
+  return `<div class="note-item"><b>${escapeHTML(g.subject)}</b> — ${escapeHTML(g.assessment)}
+   <div class="meta">${Number(g.obtained)} / ${Number(g.maximum)} marks · ${pct.toFixed(1)}% · ${gradeLabel(pct)}${g.gpa!==""&&g.gpa!=null?` · SGPA/CGPA: ${escapeHTML(String(g.gpa))}`:""}</div>
+   <button class="sm" type="button" data-grade-delete="${g.id}">Delete result</button></div>`;
+ }).join(""):"<p class='meta'>No results recorded yet. Add your first assessment above.</p>";
+}
+$("#profileForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ db.profile={name:$("#studentName").value.trim(),level:$("#studentLevel").value,institution:$("#institution").value.trim(),boardUniversity:$("#boardUniversity").value.trim(),academicYear:$("#academicYear").value.trim()};
+ save();renderProfile();log("Updated student profile");
+});
+$("#gradeForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const subject=$("#gradeSubject").value.trim(),assessment=$("#assessmentName").value.trim();
+ const obtained=Number($("#marksObtained").value),maximum=Number($("#marksMaximum").value),gpa=$("#gradeGpa").value.trim();
+ if(!subject||!assessment||!Number.isFinite(obtained)||!Number.isFinite(maximum)||maximum<=0||obtained<0||obtained>maximum){
+  alert("Enter a subject, assessment, and valid marks. Marks obtained cannot exceed maximum marks.");return;
+ }
+ if(gpa!==""&&(!Number.isFinite(Number(gpa))||Number(gpa)<0||Number(gpa)>10)){
+  alert("SGPA / CGPA must be between 0 and 10.");return;
+ }
+ db.grades.push({id:Date.now(),subject,assessment,obtained,maximum,gpa});
+ save();$("#gradeSubject").value="";$("#assessmentName").value="";$("#marksObtained").value="";$("#marksMaximum").value="100";$("#gradeGpa").value="";
+ renderGrades();log("Added academic result for "+subject);
+});
+$("#gradeEntries").addEventListener("click",e=>{
+ const id=Number(e.target.dataset.gradeDelete);if(!id)return;
+ db.grades=db.grades.filter(g=>g.id!==id);save();renderGrades();log("Deleted an academic result");
+});
+$("#targetPercent").addEventListener("change",()=>{
+ const value=Number($("#targetPercent").value);
+ if(!Number.isFinite(value)||value<1||value>100){alert("Target percentage must be between 1 and 100.");$("#targetPercent").value=db.targetPercent;return;}
+ db.targetPercent=value;save();renderGrades();
+});
+
+function color(r){return r>=.7?"var(--mint)":r>=.45?"var(--tang)":"var(--red)"}
+function markStudy(){
+ const k=todayKey();if(!db.studyDates.includes(k))db.studyDates.push(k);
+ save();renderRewards();
+}
+function addSession(minutes){
+ db.sessions.push({date:todayKey(),minutes});markStudy();save();renderAnalytics();
+}
+function curve(t){
+ const A=analyze(t,clock()),total=Math.max(3,Math.ceil(A.dNow+A.dExam)+1),W=600,H=190,P=30;
+ const x=d=>P+d/total*(W-2*P),y=r=>H-P-r*(H-2*P);
+ let path="";for(let i=0;i<=60;i++){const d=i/60*total;path+=(i?"L":"M")+x(d).toFixed(1)+" "+y(retention(d,t.S)).toFixed(1)}
+ return `<div class="meta"><b>${escapeHTML(t.topic)}</b>: estimated memory retention over time</div>
+ <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Forgetting curve">
+ <line x1="${P}" x2="${W-P}" y1="${y(TARGET)}" y2="${y(TARGET)}" stroke="var(--tang)" stroke-dasharray="5 4"/>
+ <text x="${W-P}" y="${y(TARGET)-5}" text-anchor="end" font-size="11" fill="var(--tang)">revise below 70%</text>
+ <path d="${path}" fill="none" stroke="var(--vio)" stroke-width="3"/>
+ <circle cx="${x(A.dNow)}" cy="${y(A.R)}" r="6" fill="var(--vio)"/>
+ <text x="${x(A.dNow)+9}" y="${y(A.R)-8}" font-size="12" fill="var(--ink)">today ${Math.round(A.R*100)}%</text>
+ <line x1="${x(A.dNow+A.dExam)}" x2="${x(A.dNow+A.dExam)}" y1="${P-8}" y2="${H-P}" stroke="var(--red)"/>
+ <text x="${x(A.dNow+A.dExam)-5}" y="${P}" text-anchor="end" font-size="12" fill="var(--red)">exam ${Math.round(A.Rexam*100)}%</text>
+ <text x="${P}" y="${H-8}" font-size="11" fill="var(--mute)">days since last revision →</text></svg>`;
+}
+function render(){
+ const list=db.topics.map(t=>({...t,A:analyze(t,clock())}));
+ const live=list.filter(t=>!t.A.over);
+ const avg=live.length?live.reduce((s,t)=>s+t.A.Rexam,0)/live.length:0;
+ $("#readiness").textContent=live.length?Math.round(avg*100)+"%":"–";
+ $("#readiness").style.color=live.length?color(avg):"";
+ $("#clock").textContent=db.skip?`+${db.skip} day${db.skip===1?"":"s"} ahead (demo)`:"today";
+ const dailyBudget=Math.max(15,Math.min(600,Number($("#budget").value)||90));$("#budget").value=dailyBudget;
+ const plan=makePlan(db.topics,clock(),dailyBudget);
+ $("#plan").innerHTML=plan.length?plan.map(p=>`<div class="task" data-id="${p.t.id}"><div class="min">${p.min}m</div><div class="info"><b>${escapeHTML(p.t.topic)}</b><small>${escapeHTML(p.t.subject)} · memory ${Math.round(p.A.R*100)}% · exam in ${Math.ceil(p.A.dExam)} day(s)</small></div><span class="meta">How was revision?</span><button class="sm" data-rating="hard">Hard</button><button class="sm" data-rating="good">Good</button><button class="sm" data-rating="easy">Easy</button></div>`).join(""): `<p class="meta">${list.length?"Nothing urgent. Your memory is fresh.":"Add your first topic above."}</p>`;
+ $("#memoryMap").innerHTML=list.length?list.map(t=>`<div class="row ${t.id===selectedId?"sel":""}" data-id="${t.id}"><div><b>${escapeHTML(t.topic)}</b><div class="meta">${escapeHTML(t.subject)} · exam ${t.exam}</div></div><div><div class="bar"><i style="width:${t.A.R*100}%;background:${color(t.A.R)}"></i></div><div class="meta">${Math.round(t.A.R*100)}% now → ${Math.round(t.A.Rexam*100)}% on exam day${t.A.dueIn<=0?" · revise now":" · next revision in "+Math.ceil(t.A.dueIn)+"d"}</div></div><button class="sm" data-delete>Remove</button></div>`).join(""):"<p class='meta'>No topics yet.</p>";
+ const current=list.find(t=>t.id===selectedId)||list[0];$("#curve").innerHTML=current?curve(current):"";
+ renderCountdown(list);renderNotifications(list);renderRewards();renderAnalytics();renderNotes();if($("#memoryTopic"))renderMemoryEngine();if($("#rescuePlan"))buildRescuePlan();
+}
+let selectedId=null;
+function renderCountdown(list){
+ const upcoming=list.filter(t=>!t.A.over).sort((a,b)=>a.exam.localeCompare(b.exam));
+ $("#countdowns").innerHTML=upcoming.length?upcoming.slice(0,6).map(t=>`<div class="notice"><b>${escapeHTML(t.subject)} – ${escapeHTML(t.topic)}</b><div class="stat">${Math.max(0,Math.ceil((new Date(t.exam+"T23:59").getTime()-clock())/DAY))}</div><span class="meta">days remaining · ${t.exam}</span></div>`).join(""):"<p class='meta'>Add a topic with an exam date to see your countdown.</p>";
+}
+function renderNotifications(list){
+ const due=list.filter(t=>!t.A.over&&t.A.R<TARGET).sort((a,b)=>a.A.R-b.A.R);
+ const soon=list.filter(t=>!t.A.over&&t.A.R>=TARGET&&t.A.dueIn<=1);
+ let items=[...due.map(t=>({t,msg:"Memory is below 70% — revise this topic today.",kind:"alert"})),...soon.map(t=>({t,msg:"Revision is coming up soon — plan a short review.",kind:""}))];
+ $("#notifications").innerHTML=items.length?items.map(x=>`<div class="notice ${x.kind}"><b>${escapeHTML(x.t.subject)} – ${escapeHTML(x.t.topic)}</b><div>${x.msg} <span class="pill">${Math.round(x.t.A.R*100)}% memory</span></div></div>`).join(""):"<div class='notice good'>You're on track! No topics currently need an urgent revision.</div>";
+}
+function renderRewards(){
+ const dates=[...new Set(db.studyDates)].sort().reverse();let streak=0;
+ let d=new Date(todayKey()+"T12:00:00");
+ if(!dates.includes(todayKey()))d.setDate(d.getDate()-1);
+ while(dates.includes(d.toISOString().slice(0,10))){streak++;d.setDate(d.getDate()-1)}
+ $("#streak").textContent=streak+" day"+(streak===1?"":"s")+" 🔥";
+ $("#streakHint").textContent=streak?"Keep going — a little revision each day adds up.":"Complete a focus session or mark a revision to start your streak.";
+ const total=db.sessions.length;
+ const badges=[];
+ if(total>=1)badges.push("🌱 First focus session");
+ if(streak>=3)badges.push("🔥 3-day streak");
+ if(streak>=7)badges.push("🏆 7-day streak");
+ if(total>=10)badges.push("⭐ 10 focus sessions");
+ if(db.topics.length>=5)badges.push("📚 5 topics added");
+ $("#badges").innerHTML=badges.length?badges.map(b=>`<span class="badge">${b}</span>`).join(""):"<span class='meta'>Your first badge is waiting. Complete a focus session!</span>";
+}
+function renderAnalytics(){
+ const now=new Date(todayKey()+"T12:00:00");const start=new Date(now);start.setDate(start.getDate()-6);
+ const days=Array.from({length:7},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const key=d.toISOString().slice(0,10);return {key,label:d.toLocaleDateString(undefined,{weekday:"short"}),minutes:db.sessions.filter(s=>s.date===key).reduce((a,s)=>a+s.minutes,0)}});
+ $("#weekMinutes").textContent=days.reduce((a,d)=>a+d.minutes,0);
+ $("#weekSessions").textContent=db.sessions.filter(s=>s.date>=days[0].key&&s.date<=days[6].key).length;
+ $("#topicCount").textContent=db.topics.length;
+ const max=Math.max(30,...days.map(d=>d.minutes));
+ $("#weeklyChart").innerHTML=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:150px">${days.map(d=>`<div style="text-align:center;height:100%;display:flex;flex-direction:column;justify-content:end;gap:5px"><span class="meta">${d.minutes}</span><div style="height:${Math.max(4,d.minutes/max*105)}px;background:var(--vio);border-radius:6px 6px 0 0"></div><span class="meta">${d.label}</span></div>`).join("")}</div>`;
+}
+function renderNotes(){
+ const select=$("#noteTopic"),old=select.value;
+ select.innerHTML=db.topics.length?db.topics.map(t=>`<option value="${t.id}">${escapeHTML(t.subject)} – ${escapeHTML(t.topic)}</option>`).join(""):"<option value=''>Add a topic first</option>";
+ if(db.topics.some(t=>String(t.id)===old))select.value=old;
+ $("#notesList").innerHTML=db.notes.length?db.notes.slice().reverse().map(n=>{const t=db.topics.find(x=>x.id===n.topicId);return `<div class="note-item"><b>${escapeHTML(n.title||"Untitled note")}</b><div class="meta">${t?escapeHTML(t.topic):"Topic removed"}</div><p>${escapeHTML(n.body)}</p><button class="sm" data-note-delete="${n.id}">Delete</button></div>`}).join(""):"<p class='meta'>No notes saved yet.</p>";
+}
+
+function renderMemoryEngine(){
+  const sel=$("#memoryTopic"),old=sel.value;
+  sel.innerHTML=db.topics.length?db.topics.map(t=>`<option value="${t.id}">${escapeHTML(t.subject)} – ${escapeHTML(t.topic)}</option>`).join(""):"<option value=''>Add a topic first</option>";
+  if(db.topics.some(t=>String(t.id)===old))sel.value=old;
+  $("#memoryPrompts").innerHTML=db.memoryPrompts.length?db.memoryPrompts.map(p=>{
+    const t=db.topics.find(x=>x.id===p.topicId),results=db.memoryResults.filter(r=>r.promptId===p.id);
+    const avg=results.length?Math.round(results.reduce((s,r)=>s+r.score,0)/results.length):null;
+    const revealed=revealedPrompts.has(p.id);
+    return `<div class="memory-card"><b>${escapeHTML(t?.topic||"Removed topic")}</b><p>${escapeHTML(p.question)}</p><p class="meta">Try answering from memory before revealing the key points.</p>${revealed?`<div class="answer-panel"><b>Suggested answer</b><br>${escapeHTML(p.answer)}</div><div class="tools memory-actions"><span class="meta">How well did you recall?</span><button class="sm" data-memory-score="0" data-prompt="${p.id}">Not yet</button><button class="sm" data-memory-score="50" data-prompt="${p.id}">Partly</button><button class="sm" data-memory-score="100" data-prompt="${p.id}">Fully</button></div>`:`<button class="secondary sm" type="button" data-memory-reveal="${p.id}">Reveal answer</button>`}<div class="meta">${results.length} attempt(s) · average recall ${avg===null?"not tested":avg+"%"}</div><button class="sm" data-memory-delete="${p.id}">Delete question</button></div>`;
+  }).join(""):"<p class='meta'>No recall questions yet. Add one for a topic to start measuring actual recall.</p>";
+  const tested=db.topics.filter(t=>t.quizCount>0);
+  const avg=tested.length?Math.round(tested.reduce((s,t)=>s+(t.quizAverage||0),0)/tested.length):null;
+  const compared=tested.filter(t=>Number.isFinite(t.confidence));
+  const gap=compared.length?Math.round(compared.reduce((s,t)=>s+((t.confidence||0)-(t.quizAverage||0)),0)/compared.length):null;
+  $("#memoryInsights").innerHTML=`<b>Memory insight:</b> ${tested.length?`Your average self-tested recall is <b>${avg}%</b> across ${tested.length} topic(s).`:"No quiz results yet. Test yourself using the buttons above."} ${gap===null?"Add topics and test your recall to compare confidence with results.":`Average confidence-minus-recall gap: <b>${gap>0?"+":""}${gap} points</b>. ${gap>15?"You may be overestimating some topics.":gap< -15?"You may know more than you feel you do.":"Your confidence and recall are fairly close."}`} Recall scores are self-assessments. Retention values are estimates for planning, not scientifically validated predictions.`;
+}
+$("#saveMemoryPrompt").addEventListener("click",()=>{
+  const topicId=Number($("#memoryTopic").value),question=$("#memoryQuestion").value.trim(),answer=$("#memoryAnswer").value.trim();
+  if(!topicId||!question||!answer){alert("Choose a topic and enter both the question and answer.");return;}
+  db.memoryPrompts.push({id:Date.now(),topicId,question,answer});save();$("#memoryQuestion").value="";$("#memoryAnswer").value="";renderMemoryEngine();
+});
+$("#memoryPrompts").addEventListener("click",e=>{
+  const score=e.target.dataset.memoryScore,pid=Number(e.target.dataset.prompt),del=Number(e.target.dataset.memoryDelete),reveal=Number(e.target.dataset.memoryReveal);
+  if(del){db.memoryPrompts=db.memoryPrompts.filter(p=>p.id!==del);db.memoryResults=db.memoryResults.filter(r=>r.promptId!==del);revealedPrompts.delete(del);save();renderMemoryEngine();return;}
+  if(e.target.hasAttribute("data-memory-reveal")){const revealId=Number(e.target.dataset.memoryReveal);if(revealId)revealedPrompts.add(revealId);renderMemoryEngine();return;}
+  if(score===undefined)return;
+  const p=db.memoryPrompts.find(x=>x.id===pid);if(!p||!revealedPrompts.has(pid))return;
+  const value=Number(score);if(![0,50,100].includes(value))return;
+  db.memoryResults.push({id:Date.now(),promptId:pid,score:value,date:todayKey()});revealedPrompts.delete(pid);
+  const t=db.topics.find(x=>x.id===p.topicId);
+  if(t){const previous=t.quizCount||0;t.quizAverage=previous?Math.round(((t.quizAverage||0)*previous+value)/(previous+1)):value;t.quizCount=previous+1;
+    // A failed recall is not a successful revision: do not reset the forgetting clock.
+    if(value===0){t.S=Math.max(.5,(Number(t.S)||2.5)*.85);db.mistakes.push({id:Date.now()+1,topicId:t.id,question:p.question,answer:p.answer,date:todayKey()});}
+    else{t.S=Math.min(90,(Number(t.S)||2.5)*(value===50?1.3:2));t.last=clock();markStudy();}
+  }
+  save();renderMemoryEngine();render();
+});
+function buildRescuePlan(){
+  const budget=Math.max(15,Math.min(600,+($("#rescueBudget")?.value)||120));
+  const items=db.topics.map(t=>{
+    const a=analyze(t,clock());if(a.over)return null;
+    const recall=t.quizCount?((t.quizAverage||0)/100):a.R;
+    const weakness=1-recall,urgency=1/(Math.max(0,a.dExam)+1);
+    const importance=Math.max(1,Math.min(3,+t.importance||2));
+    const priority=(weakness*0.55+urgency*0.25+(importance/3)*0.20);
+    return {t,a,recall,priority};
+  }).filter(Boolean).sort((a,b)=>b.priority-a.priority).slice(0,8);
+  const allocated=allocateMinutes(items,budget,x=>x.priority);
+  $("#rescuePlan").innerHTML=allocated.length?allocated.map(x=>{
+    const mins=x.min;
+    return `<div class="task"><div class="min">${mins}m</div><div class="info"><b>${escapeHTML(x.t.subject)} – ${escapeHTML(x.t.topic)}</b><small>Priority ${Math.round(x.priority*100)} · recall ${Math.round(x.recall*100)}% · importance ${["","Low","Medium","High"][Math.max(1,Math.min(3,+x.t.importance||2))]} · exam in ${Math.ceil(x.a.dExam)} day(s)</small></div><span class="pill">${x.recall<.5?"High priority":x.recall<.7?"Revise":"Maintain"}</span></div>`;
+  }).join(""):"<p class='meta'>Add topics with exam dates to create your rescue plan.</p>";
+}
+$("#buildRescue").addEventListener("click",buildRescuePlan);
+$("#rescueBudget").addEventListener("change",buildRescuePlan);
+
+$("#topicForm").addEventListener("submit",e=>{
+ e.preventDefault();const subject=$("#subject").value.trim(),topic=$("#topic").value.trim(),exam=$("#exam").value,confidence=+$("#confidence").value;
+ if(!subject||!topic||!exam){$("#error").textContent="Please complete all fields.";return}
+ if(new Date(exam+"T23:59:00").getTime()<clock()){$("#error").textContent="Exam date cannot be in the past.";return}
+ const t={id:Date.now(),subject,topic,exam,S:1+confidence*1.5,last:clock(),confidence:confidence*20,importance:+$("#importance").value||2,quizAverage:null,quizCount:0};
+ db.topics.push(t);selectedId=t.id;save();$("#error").textContent="Topic added!";$("#subject").value="";$("#topic").value="";render();log("Added topic: "+topic);
+});
+$("#plan").addEventListener("click",e=>{
+ const rating=e.target.dataset.rating,task=e.target.closest(".task");if(!rating||!task)return;
+ const t=db.topics.find(x=>x.id===Number(task.dataset.id));if(!t)return;
+ t.S*=GAIN[rating];t.last=clock();save();markStudy();render();log("Reviewed "+t.topic+" ("+rating+")");
+});
+$("#memoryMap").addEventListener("click",e=>{
+ const row=e.target.closest(".row");if(!row)return;const id=Number(row.dataset.id);
+ if(e.target.hasAttribute("data-delete")){db.topics=db.topics.filter(t=>t.id!==id);db.notes=db.notes.filter(n=>n.topicId!==id);db.memoryPrompts=db.memoryPrompts.filter(p=>p.topicId!==id);db.memoryResults=db.memoryResults.filter(r=>db.memoryPrompts.some(p=>p.id===r.promptId));if(selectedId===id)selectedId=null;save();log("Removed a topic")}
+ else selectedId=id;render();
+});
+$("#budget").addEventListener("change",render);
+$("#fastForward").addEventListener("click",()=>{db.skip++;save();render();log("Fast-forwarded one demo day")});
+$("#saveNote").addEventListener("click",()=>{
+ const topicId=Number($("#noteTopic").value),title=$("#noteTitle").value.trim(),body=$("#noteBody").value.trim();
+ if(!topicId||!body){alert("Please add a topic and write your note.");return}
+ db.notes.push({id:Date.now(),topicId,title,body});save();$("#noteTitle").value="";$("#noteBody").value="";renderNotes();log("Saved a personal note");
+});
+$("#notesList").addEventListener("click",e=>{
+ const id=Number(e.target.dataset.noteDelete);if(!id)return;db.notes=db.notes.filter(n=>n.id!==id);save();renderNotes();log("Deleted a note");
+});
+$("#themeBtn").addEventListener("click",()=>{
+ db.theme=db.theme==="dark"?"light":"dark";document.body.classList.toggle("dark",db.theme==="dark");
+ $("#themeBtn").textContent=db.theme==="dark"?"☀️ Light mode":"🌙 Dark mode";save();
+});
+$("#paletteSelect").addEventListener("change",()=>{
+ db.palette=PALETTES.includes($("#paletteSelect").value)?$("#paletteSelect").value:"lavender";
+ applyPalette();save();log("Changed colour theme to "+db.palette);
+});
+document.body.classList.toggle("dark",db.theme==="dark");$("#themeBtn").textContent=db.theme==="dark"?"☀️ Light mode":"🌙 Dark mode";
+applyPalette();
+
+let timerRemaining=25*60,timerInterval=null,timerMode="focus";
+function showTimer(){const m=Math.floor(timerRemaining/60),s=timerRemaining%60;$("#timer").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
+function resetTimer(){clearInterval(timerInterval);timerInterval=null;timerMode="focus";timerRemaining=Math.max(1,Math.min(90,+$("#focusLength").value||25))*60;$("#timerStatus").textContent="Focus session";showTimer()}
+function startTimer(){
+ if(timerInterval)return;
+ timerInterval=setInterval(()=>{
+  timerRemaining--;showTimer();
+  if(timerRemaining<=0){
+   clearInterval(timerInterval);timerInterval=null;
+   if(timerMode==="focus"){const mins=Math.max(1,Math.min(90,+$("#focusLength").value||25));addSession(mins);alert("Focus session complete! Take a break.");timerMode="break";timerRemaining=Math.max(1,Math.min(30,+$("#breakLength").value||5))*60;$("#timerStatus").textContent="Break time";}
+   else{alert("Break finished. Ready for another focus session?");timerMode="focus";timerRemaining=Math.max(1,Math.min(90,+$("#focusLength").value||25))*60;$("#timerStatus").textContent="Focus session"}
+   showTimer();
+  }
+ },1000);
+}
+$("#timerStart").addEventListener("click",startTimer);
+$("#timerPause").addEventListener("click",()=>{clearInterval(timerInterval);timerInterval=null});
+$("#timerReset").addEventListener("click",resetTimer);
+$("#focusLength").addEventListener("change",resetTimer);
+$("#breakLength").addEventListener("change",()=>{if(timerMode==="break"&&!timerInterval){timerRemaining=Math.max(1,Math.min(30,+$("#breakLength").value||5))*60;showTimer()}});
+resetTimer();
+document.body.classList.toggle("dark",db.theme==="dark");
+$("#themeBtn").textContent=db.theme==="dark"?"☀️ Light mode":"🌙 Dark mode";
+applyPalette();
+try {
+  renderProfile();
+  renderGrades();
+  render();
+  renderMemoryEngine();
+  buildRescuePlan();
+} catch (err) {
+  console.error("StudyLoop startup error:", err);
+  const panel = document.getElementById("startupError");
+  if (panel) { panel.hidden = false; panel.textContent = "StudyLoop could not load saved data. Use Clear my study data, then refresh the page. Details: " + (err && err.message ? err.message : "unknown error"); }
+}
+
+</script>
+<script>
+// STUDYLOOP DEMO AUTHENTICATION
+// Local, browser-only accounts for a college project demonstration.
+// Passwords are salted and PBKDF2-hashed when Web Crypto is available.
+// This is NOT production authentication and does not sync across devices.
+(()=>{
+  const ACCOUNT_KEY="studyloop.demo.accounts.v1";
+  const authScreen=document.getElementById("authScreen");
+  const appShell=document.getElementById("appShell");
+  const message=document.getElementById("demoAuthMessage");
+  const byId=id=>document.getElementById(id);
+  const tell=(text,isError=false)=>{
+    message.textContent=text;
+    message.classList.toggle("error",!!isError);
+  };
+  const getAccounts=()=>{
+    try{
+      const value=JSON.parse(localStorage.getItem(ACCOUNT_KEY)||"{}");
+      return value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+    }catch(_){return {};}
+  };
+  const putAccounts=accounts=>localStorage.setItem(ACCOUNT_KEY,JSON.stringify(accounts));
+  const bytesToBase64=bytes=>{
+    let binary="";
+    new Uint8Array(bytes).forEach(byte=>binary+=String.fromCharCode(byte));
+    return btoa(binary);
+  };
+  const base64ToBytes=value=>Uint8Array.from(atob(value),c=>c.charCodeAt(0));
+  const makePasswordHash=async(password,salt)=>{
+    if(!window.crypto||!crypto.subtle)throw new Error("Secure password hashing is unavailable in this browser. Open this project in a current version of Chrome or Edge.");
+    const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);
+    const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:120000,hash:"SHA-256"},key,256);
+    return bytesToBase64(bits);
+  };
+  const makeSalt=()=>{
+    const salt=new Uint8Array(16);
+    crypto.getRandomValues(salt);
+    return salt;
+  };
+  const makeUid=()=>{
+    if(crypto.randomUUID)return crypto.randomUUID();
+    return "student-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
+  };
+  const normalizeAccountData=raw=>{
+    const freshCopy=JSON.parse(JSON.stringify(fresh));
+    const data={...freshCopy,...(raw&&typeof raw==="object"?raw:{})};
+    for(const key of ["topics","notes","studyDates","sessions","memoryPrompts","memoryResults","mistakes","grades"]){
+      if(!Array.isArray(data[key]))data[key]=[];
+    }
+    if(!data.profile||typeof data.profile!=="object")data.profile={...freshCopy.profile};
+    if(!Number.isFinite(+data.skip))data.skip=0;
+    if(!Number.isFinite(+data.targetPercent))data.targetPercent=85;
+    if(data.theme!=="dark")data.theme="light";
+    if(!PALETTES.includes(data.palette))data.palette="lavender";
+    data.topics=data.topics.filter(t=>t&&typeof t==="object").map(t=>({...t,
+      S:Number.isFinite(Number(t.S))&&Number(t.S)>0?Number(t.S):2.5,
+      last:Number.isFinite(Number(t.last))?Number(t.last):Date.now(),
+      importance:Math.max(1,Math.min(3,Number(t.importance)||2)),
+      quizCount:Math.max(0,Number(t.quizCount)||0),
+      quizAverage:Number.isFinite(Number(t.quizAverage))?Number(t.quizAverage):0
+    }));
+    return data;
+  };
+  const showLogin=()=>{
+    byId("demoLoginForm").hidden=false;
+    byId("demoSignupForm").hidden=true;
+    byId("loginTab").classList.add("active");
+    byId("loginTab").classList.remove("secondary");
+    byId("signupTab").classList.remove("active");
+    byId("signupTab").classList.add("secondary");
+    byId("loginTab").setAttribute("aria-selected","true");
+    byId("signupTab").setAttribute("aria-selected","false");
+    tell("Enter the email address and password for your demo account.");
+  };
+  const showSignup=()=>{
+    byId("demoLoginForm").hidden=true;
+    byId("demoSignupForm").hidden=false;
+    byId("signupTab").classList.add("active");
+    byId("signupTab").classList.remove("secondary");
+    byId("loginTab").classList.remove("active");
+    byId("loginTab").classList.add("secondary");
+    byId("signupTab").setAttribute("aria-selected","true");
+    byId("loginTab").setAttribute("aria-selected","false");
+    tell("Create a new demo account. No email verification is required.");
+  };
+  const openWorkspace=(account)=>{
+    KEY="studyloop.account."+account.uid;
+    let saved=null;
+    try{saved=JSON.parse(localStorage.getItem(KEY)||"null");}catch(_){saved=null;}
+    db=normalizeAccountData(saved);
+    if(!db.profile.name)db.profile.name=account.name||"";
+    selectedId=null;
+    authScreen.hidden=true;
+    appShell.hidden=false;
+    byId("accountBadge").textContent=(account.name||"Student")+" · "+account.email;
+    document.body.classList.toggle("dark",db.theme==="dark");
+    byId("themeBtn").textContent=db.theme==="dark"?"☀️ Light mode":"🌙 Dark mode";
+    applyPalette();
+    renderProfile();
+    renderGrades();
+    render();
+    renderMemoryEngine();
+    buildRescuePlan();
+    save();
+    window.scrollTo({top:0,behavior:"auto"});
+  };
+  byId("loginTab").addEventListener("click",showLogin);
+  byId("signupTab").addEventListener("click",showSignup);
+  byId("demoSignupForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const name=byId("demoSignupName").value.trim();
+    const email=byId("demoSignupEmail").value.trim().toLowerCase();
+    const password=byId("demoSignupPassword").value;
+    const confirmPassword=byId("demoSignupConfirm").value;
+    if(!name){tell("Please enter your name.",true);return;}
+    if(password.length<6){tell("Use at least 6 characters for the password.",true);return;}
+    if(password!==confirmPassword){tell("The passwords do not match.",true);return;}
+    const accounts=getAccounts();
+    if(accounts[email]){tell("An account with this email already exists. Please log in instead.",true);return;}
+    try{
+      tell("Creating your demo account…");
+      const salt=makeSalt();
+      const passwordHash=await makePasswordHash(password,salt);
+      const account={uid:makeUid(),name,email,salt:bytesToBase64(salt),passwordHash,createdAt:new Date().toISOString()};
+      accounts[email]=account;
+      putAccounts(accounts);
+      byId("demoSignupForm").reset();
+      openWorkspace(account);
+    }catch(error){tell(error.message||"Could not create this demo account.",true);}
+  });
+  byId("demoLoginForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const email=byId("demoLoginEmail").value.trim().toLowerCase();
+    const password=byId("demoLoginPassword").value;
+    const account=getAccounts()[email];
+    if(!account){tell("No demo account found for this email. Create an account first.",true);return;}
+    try{
+      tell("Checking your demo account…");
+      const hash=await makePasswordHash(password,base64ToBytes(account.salt));
+      if(hash!==account.passwordHash){tell("Incorrect password. Please try again.",true);return;}
+      byId("demoLoginForm").reset();
+      openWorkspace(account);
+    }catch(error){tell(error.message||"Could not log in.",true);}
+  });
+  byId("demoLogoutBtn").addEventListener("click",()=>{
+    KEY="studyloop.demo.guest";
+    db=normalizeAccountData(null);
+    selectedId=null;
+    appShell.hidden=true;
+    authScreen.hidden=false;
+    showLogin();
+    window.scrollTo({top:0,behavior:"auto"});
+  });
+  // Start at the account screen; workspace data is loaded only after login.
+  appShell.hidden=true;
+  authScreen.hidden=false;
+})();
+</script>
+
+<script>
+(function setupStudyLoopPages(){
+  const main=document.querySelector('#appShell .app-main');
+  if(!main) return;
+  const pages={
+    dashboard:{title:'Dashboard',desc:'A quick look at what needs your attention today.'},
+    profile:{title:'My Profile',desc:'Your personal learning details.'},
+    academics:{title:'Academics',desc:'Keep your marks, grades and academic goals organised.'},
+    planner:{title:'Study Planner',desc:'Plan focused sessions and organise your upcoming revision.'},
+    memory:{title:'Memory Zone',desc:'Understand what is sticking and practise active recall.'},
+    exams:{title:'Exam Preparation',desc:'Prepare strategically with countdowns and priority-based revision.'},
+    progress:{title:'My Progress',desc:'See your consistency, focus time and learning milestones.'},
+    notes:{title:'My Notes',desc:'Your saved explanations, formulas and reminders.'},
+    settings:{title:'Settings',desc:'Personalise your StudyLoop experience.'}
+  };
+  const groups={dashboard:[],profile:[],academics:[],planner:[],memory:[],exams:[],progress:[],notes:[],settings:[]};
+  let current='dashboard';
+  const classify={
+    'Student profile':'profile',
+    'Grades & academic performance':'academics',
+    'Personalize your colours':'settings',
+    'Add a topic':'planner',
+    'Today':'dashboard',
+    'Exam countdown':'exams',
+    'Smart revision notifications':'exams',
+    'Memory map':'memory',
+    'Study streak & rewards':'progress',
+    'Pomodoro focus timer':'planner',
+    'Weekly performance':'progress',
+    'Memory Intelligence Engine':'memory',
+    'Exam Rescue Mode':'exams',
+    'Personal notes':'notes'
+  };
+  [...main.children].forEach(node=>{
+    if(node.id==='startupError'){groups.dashboard.push(node);return;}
+    if(node.tagName==='H2'){
+      const key=classify[node.textContent.trim()];
+      if(key) current=key;
+    }
+    groups[current].push(node);
+  });
+  Object.entries(groups).forEach(([key,nodes],index)=>{
+    const section=document.createElement('section');
+    section.className='page-view'+(key==='dashboard'?' active':'');
+    section.id='page-'+key;
+    const heading=document.createElement('h2');
+    heading.className='page-heading';
+    heading.textContent=pages[key].title;
+    const desc=document.createElement('p');
+    desc.className='page-description';
+    desc.textContent=pages[key].desc;
+    section.append(heading,desc);
+    nodes.forEach(node=>section.appendChild(node));
+    main.appendChild(section);
+  });
+  const nav=document.getElementById('sideNav');
+  nav.addEventListener('click',event=>{
+    const button=event.target.closest('button[data-page]');
+    if(!button)return;
+    const key=button.dataset.page;
+    document.querySelectorAll('.page-view').forEach(page=>page.classList.toggle('active',page.id==='page-'+key));
+    nav.querySelectorAll('button').forEach(item=>{item.classList.toggle('active',item===button);if(item===button)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current')});
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+})();
+</script>
+
+</body>
+</html>
